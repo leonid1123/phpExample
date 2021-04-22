@@ -1,7 +1,17 @@
 <?php
     require_once "config.php";
+    session_start();
     $query = "SELECT title, newsText, date, imgLink FROM news ORDER BY date DESC";
     $result = mysqli_query($link, $query);
+    if (!empty($_SESSION["username"]) && $_SESSION["username"]=="leonid112") {
+        $showAdd = "";
+        $showLogout = "";
+        $showLogin = "visually-hidden";
+    } else {
+        $showAdd = "visually-hidden";
+        $showLogout = "visually-hidden";
+        $showLogin = "";
+    }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -15,6 +25,30 @@
 </head>
 <body>
 <div class="container-md">
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container-fluid">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="index.php">На главную</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link <?php echo $showAdd; ?>" href="addNews.php">Добавить новость</a>
+        </li>
+        <li class=" nav-item">
+          <a class="nav-link <?php echo $showLogin; ?>" href="login.php">Вход на сайт</a>
+        </li>
+        <li class=" nav-item">
+          <a class="nav-link <?php echo $showLogout; ?>" href="logout.php">Выход</a>
+        </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
 <h1> Новости </h1>
 <?php
 while ($row = mysqli_fetch_assoc($result)) {

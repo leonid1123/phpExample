@@ -1,17 +1,32 @@
 <?php
+    session_start();
+    if((!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) ?? $_SESSION["username"]=="leonid112"){
+        header("location: login.php");
+        exit;
+    }
     require_once "config.php";
 
     if (!empty($_POST)) {
+        $msg="";
         $stmt = mysqli_prepare($link, "INSERT INTO news VALUES (null, ?, ?, null,?)");
         mysqli_stmt_bind_param($stmt, 'sss', $title, $newsText, $imgLink);
 
+        $uploaddir = 'img/';
+        $uploadfile = $uploaddir . basename($_FILES['newsImage']['name']);
+
+        if (move_uploaded_file($_FILES['newsImage']['tmp_name'], $uploadfile)) {
+            $msg =  "Файл корректен и был успешно загружен.\n";
+        } else {
+            $msg =  "Возможная атака с помощью файловой загрузки!\n";
+        }
+
         $title = $_POST["titleInput"];
         $newsText = $_POST["newsText"];
-        $imgLink = "img.img";
+        $imgLink = $_FILES['newsImage']['name'];
 
         mysqli_stmt_execute($stmt);
 
-        printf("строк добавлено: %d.\n", mysqli_stmt_affected_rows($stmt));
+        //printf("строк добавлено: %d.\n", mysqli_stmt_affected_rows($stmt));
     }
 ?>
 <!DOCTYPE html>
@@ -26,7 +41,8 @@
 </head>
 <body>
 <div class="container-md">
-<form action="addNews.php" method="POST">
+<h1>Форма добавления новостей <?php echo htmlspecialchars($_SESSION["username"]); ?></h1>
+<form enctype="multipart/form-data" action="addNews.php" method="POST">
   <div class="mb-3">
     <label for="titleInput" class="form-label">Заголовок</label>
     <input name="titleInput" type="text" class="form-control" id="titleInput" aria-describedby="titleInputHelp">
@@ -38,11 +54,31 @@
     <div id="newsInputHelp" class="form-text">Напишите текст новости.</div>
   </div>
   <div class="mb-3">
+    <input type="hidden" name="MAX_FILE_SIZE" value="30000" />
     <label for="newsImage">Прикрепите изображение</label>
-    <input type="file" class="form-control-file" id="newsImage">
+    <input name="newsImage" type="file" class="form-control-file" id="newsImage">
   </div>
 <button type="submit" class="btn btn-primary">Опубликовать</button>
 </form>
+
+<?php
+if (empty($msg)) {
+    $show = "visually-hidden";
+} else {
+    $show = "";
+}
+?>
+
+<div class="<?php echo $show;  ?> alert alert-primary" role="alert">
+  <?php
+  if (!empty($msg)) {
+    echo $msg;
+  }
+  ?>
 </div>
+
+</div>
+
+
 </body>
 </html>
